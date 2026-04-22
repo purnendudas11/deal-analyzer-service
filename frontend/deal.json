@@ -5,7 +5,7 @@
     "senderID": "DealerDMS-v4"
   },
   "deal": {
-    "dealStatus": "Penciled",
+    "dealStatus": "ACTIVE",
     "parties": [
       {
         "role": "Primary Buyer",
