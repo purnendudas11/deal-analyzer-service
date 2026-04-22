@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deal Structure - Analyzer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #0066cc;
+            --secondary-color: #00b4d8;
+            --success-color: #06a77d;
+            --light-bg: #f8f9fa;
+            --dark-text: #212529;
+            --border-color: #dee2e6;
+            --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.15);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+                'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+                sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: var(--dark-text);
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px 0;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: var(--secondary-color);
+            font-weight: 500;
+        }
+
+        .deal-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: var(--shadow-lg);
+            padding: 40px;
+            margin-bottom: 30px;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .deal-id {
+            color: var(--secondary-color);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 20px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+            padding-bottom: 30px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .section:last-of-type {
+            border-bottom: none;
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title::before {
+            content: '';
+            width: 4px;
+            height: 24px;
+            background: var(--secondary-color);
+            border-radius: 2px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .info-card {
+            background: var(--light-bg);
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid var(--primary-color);
+            transition: all 0.3s ease;
+        }
+
+        .info-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .info-label {
+            font-size: 0.85rem;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .info-value {
+            font-size: 1.1rem;
+            color: var(--dark-text);
+            font-weight: 500;
+            word-break: break-word;
+        }
+
+        .currency {
+            color: var(--success-color);
+            font-weight: 600;
+        }
+
+        .party-info {
+            background: var(--light-bg);
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid var(--secondary-color);
+        }
+
+        .party-name {
+            font-size: 1.2rem;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .party-detail {
+            margin-bottom: 10px;
+            padding: 8px 0;
+        }
+
+        .party-detail strong {
+            color: var(--primary-color);
+            display: inline-block;
+            min-width: 100px;
+        }
+
+        .button-section {
+            display: flex;
+            gap: 15px;
+            margin-top: 40px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 14px 32px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.05rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-explain {
+            background: linear-gradient(135deg, var(--success-color), #04944a);
+            color: white;
+            box-shadow: var(--shadow-lg);
+            min-width: 240px;
+            justify-content: center;
+        }
+
+        .btn-explain:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(6, 168, 125, 0.3);
+        }
+
+        .btn-explain:active:not(:disabled) {
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: var(--light-bg);
+            color: var(--primary-color);
+            border: 2px solid var(--primary-color);
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .loading-spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .status-message {
+            margin-top: 20px;
+            padding: 15px 20px;
+            border-radius: 8px;
+            display: none;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .status-message.show {
+            display: block;
+        }
+
+        .status-message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status-message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status-message.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .explanation-section {
+            display: none;
+            background: white;
+            border-radius: 12px;
+            box-shadow: var(--shadow-lg);
+            padding: 40px;
+            margin-top: 30px;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .explanation-section.show {
+            display: block;
+        }
+
+        .explanation-title {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            margin-bottom: 25px;
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 15px;
+        }
+
+        .explanation-content {
+            line-height: 1.8;
+            color: var(--dark-text);
+        }
+
+        .explanation-content h3 {
+            color: var(--primary-color);
+            margin-top: 20px;
+            margin-bottom: 12px;
+            font-size: 1.1rem;
+        }
+
+        .explanation-content p {
+            margin-bottom: 15px;
+        }
+
+        .explanation-content ul {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+
+        .explanation-content li {
+            margin-bottom: 8px;
+        }
+
+        .explanation-content strong {
+            color: var(--success-color);
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 0.9rem;
+            margin-top: 40px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            header h1 {
+                font-size: 1.8rem;
+            }
+
+            .deal-container {
+                padding: 25px;
+            }
+
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .btn {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>💼 Deal Structure</h1>
+            <p class="subtitle">Review your auto financing deal</p>
+        </header>
+
+        <div class="deal-container">
+            <div class="deal-id" id="dealId"></div>
+
+            <!-- Buyer Information -->
+            <div class="section">
+                <div class="section-title">👤 Buyer Information</div>
+                <div id="buyerInfo"></div>
+            </div>
+
+            <!-- Vehicle Information -->
+            <div class="section">
+                <div class="section-title">🚗 Vehicle Details</div>
+                <div class="info-grid" id="vehicleInfo"></div>
+            </div>
+
+            <!-- Finance Terms -->
+            <div class="section">
+                <div class="section-title">💰 Finance Terms</div>
+                <div class="info-grid" id="financeInfo"></div>
+            </div>
+
+            <!-- Protection Products -->
+            <div class="section" id="productsSection" style="display: none;">
+                <div class="section-title">🛡️ Protection Products</div>
+                <div id="productsInfo"></div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="button-section">
+                <button class="btn btn-explain" id="explainBtn" onclick="explainDeal()">
+                    <span class="loading-spinner" id="spinner"></span>
+                    <span id="btnText">✨ Explain My Deal</span>
+                </button>
+            </div>
+
+            <!-- Status Message -->
+            <div class="status-message" id="statusMessage"></div>
+        </div>
+
+        <!-- Explanation Section -->
+        <div class="explanation-section" id="explanationSection">
+            <div class="explanation-title">📖 AI-Generated Explanation</div>
+            <div class="explanation-content" id="explanationContent"></div>
+        </div>
+
+        <footer>
+            <p>&copy; 2026 Deal Structure Analyzer | Powered by AWS Bedrock</p>
+        </footer>
+    </div>
+
+    <script>
+        // Configuration - Update these with your API details
+        const config = {
+            apiEndpoint: localStorage.getItem('apiEndpoint') || 'https://YOUR_API_ID.execute-api.us-east-1.amazonaws.com/prod',
+            s3Bucket: localStorage.getItem('s3Bucket') || 'deal-structure-bucket-xxx',
+            dealJsonPath: localStorage.getItem('dealJsonPath') || '../deal.json'
+        };
+
+        // Load and display deal data on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('Page loaded, attempting to fetch deal data from:', config.dealJsonPath);
+            loadAndDisplayDeal();
+        });
+
+        async function loadAndDisplayDeal() {
+            try {
+                console.log('Fetching deal data...');
+                const response = await fetch(config.dealJsonPath);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const dealData = await response.json();
+                console.log('Deal data loaded successfully:', dealData);
+                displayDealData(dealData);
+            } catch (error) {
+                console.error('Error loading deal data:', error);
+                showStatus(`Error loading deal data: ${error.message}. Make sure deal.json is in the correct location or set dealJsonPath in localStorage.`, 'error');
+            }
+        }
+
+        function displayDealData(dealData) {
+            const deal = dealData.deal;
+            const header = dealData.header;
+
+            console.log('Displaying deal data...');
+
+            // Display Deal ID
+            document.getElementById('dealId').textContent = `Deal ID: ${header.documentID} | Status: ${deal.dealStatus}`;
+
+            // Display Buyer Information
+            if (deal.parties && deal.parties.length > 0) {
+                const buyer = deal.parties[0];
+                const buyerName = `${buyer.personName.givenName} ${buyer.personName.familyName}`;
+                const buyerHtml = `
+                    <div class="party-info">
+                        <div class="party-name">${buyerName}</div>
+                        <div class="party-detail"><strong>Role:</strong> ${buyer.role}</div>
+                        <div class="party-detail"><strong>Email:</strong> ${buyer.contact.email}</div>
+                        <div class="party-detail"><strong>Phone:</strong> ${buyer.contact.phone}</div>
+                    </div>
+                `;
+                document.getElementById('buyerInfo').innerHTML = buyerHtml;
+                console.log('Buyer info displayed');
+            }
+
+            // Display Vehicle Information
+            if (deal.vehicle) {
+                const vehicle = deal.vehicle;
+                const vehicleHtml = `
+                    <div class="info-card">
+                        <div class="info-label">Vehicle</div>
+                        <div class="info-value">${vehicle.modelYear} ${vehicle.make} ${vehicle.model}</div>
+                    </div>
+                    <div class="info-card">
+                        <div class="info-label">VIN</div>
+                        <div class="info-value">${vehicle.vin}</div>
+                    </div>
+                    <div class="info-card">
+                        <div class="info-label">Stock Number</div>
+                        <div class="info-value">${vehicle.stockNumber || 'N/A'}</div>
+                    </div>
+                `;
+                document.getElementById('vehicleInfo').innerHTML = vehicleHtml;
+                console.log('Vehicle info displayed');
+            }
+
+            // Display Finance Terms
+            if (deal.financeTerms) {
+                const terms = deal.financeTerms;
+                const financeHtml = `
+                    <div class="info-card">
+                        <div class="info-label">Financing Type</div>
+                        <div class="info-value">${terms.financingType || 'N/A'}</div>
+                    </div>
+                    <div class="info-card">
+                        <div class="info-label">Sale Price</div>
+                        <div class="info-value currency">${formatCurrency(terms.salePrice)}</div>
+                    </div>
+                    <div class="info-card">
+                        <div class="info-label">Down Payment</div>
+                        <div class="info-value currency">${formatCurrency(terms.downPayment)}</div>
+                    </div>
+                    <div class="info-card">
+                        <div class="info-label">Trade-In Allowance</div>
+                        <div class="info-value currency">${formatCurrency(terms.tradeInAllowance || 0)}</div>
+                    </div>
+                    <div class="info-card">
+                        <div class="info-label">Net Capitalized Cost</div>
+                        <div class="info-value currency">${formatCurrency(terms.netCapitalizedCost)}</div>
+                    </div>
+                    <div class="info-card">
+                        <div class="info-label">Term</div>
+                        <div class="info-value">${terms.termMonths} months</div>
+                    </div>
+                    <div class="info-card">
+                        <div class="info-label">APR</div>
+                        <div class="info-value">${terms.apr}%</div>
+                    </div>
+                    <div class="info-card">
+                        <div class="info-label">Monthly Payment</div>
+                        <div class="info-value currency">${formatCurrency(terms.monthlyPayment)}</div>
+                    </div>
+                `;
+                document.getElementById('financeInfo').innerHTML = financeHtml;
+                console.log('Finance info displayed');
+            }
+
+            // Display Protection Products
+            console.log('Checking protection products:', deal.protectionProducts);
+            if (deal.protectionProducts && deal.protectionProducts.length > 0) {
+                const productsSection = document.getElementById('productsSection');
+                productsSection.style.display = 'block';
+
+                let productsHtml = '<div class="info-grid">';
+                deal.protectionProducts.forEach((product, index) => {
+                    console.log(`Displaying product ${index}:`, product);
+                    productsHtml += `
+                        <div class="info-card">
+                            <div class="info-label">Product</div>
+                            <div class="info-value">${product.productName}</div>
+                            <div class="info-label" style="margin-top: 10px;">Provider</div>
+                            <div class="info-value">${product.provider}</div>
+                            <div class="info-label" style="margin-top: 10px;">Price</div>
+                            <div class="info-value currency">${formatCurrency(product.price)}</div>
+                        </div>
+                    `;
+                });
+                productsHtml += '</div>';
+                document.getElementById('productsInfo').innerHTML = productsHtml;
+                console.log('Protection products displayed');
+            } else {
+                console.log('No protection products found');
+                document.getElementById('productsSection').style.display = 'none';
+            }
+        }
+
+        async function explainDeal() {
+            const btn = document.getElementById('explainBtn');
+            const spinner = document.getElementById('spinner');
+            const btnText = document.getElementById('btnText');
+
+            // Validate configuration
+            if (config.apiEndpoint.includes('YOUR_API_ID')) {
+                showStatus('❌ Please configure your API Endpoint in localStorage or update the config', 'error');
+                return;
+            }
+
+            // Disable button and show loading
+            btn.disabled = true;
+            spinner.style.display = 'inline-block';
+            btnText.textContent = 'Analyzing...';
+
+            try {
+                // Load deal data
+                const response = await fetch(config.dealJsonPath);
+                const dealData = await response.json();
+
+                // Show processing message
+                showStatus('🔄 Sending your deal to AI for analysis... This may take a moment.', 'info');
+
+                // Call Lambda function to analyze with Bedrock
+                const apiResponse = await fetch(`${config.apiEndpoint}/analyze-deal`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        dealData: dealData,
+                        s3Bucket: config.s3Bucket,
+                    })
+                });
+
+                if (!apiResponse.ok) {
+                    throw new Error(`API error: ${apiResponse.statusText}`);
+                }
+
+                const result = await apiResponse.json();
+
+                if (result.success && result.explanation) {
+                    // Display the explanation
+                    displayExplanation(result.explanation);
+                    showStatus('✅ Analysis complete!', 'success');
+                } else {
+                    throw new Error(result.error || 'Empty response from API');
+                }
+
+            } catch (error) {
+                showStatus(`❌ Error: ${error.message}`, 'error');
+                console.error('Error:', error);
+            } finally {
+                // Re-enable button
+                btn.disabled = false;
+                spinner.style.display = 'none';
+                btnText.textContent = '✨ Explain My Deal';
+            }
+        }
+
+        function displayExplanation(explanation) {
+            const explanationSection = document.getElementById('explanationSection');
+            const explanationContent = document.getElementById('explanationContent');
+
+            // If explanation is HTML, display as is; otherwise wrap in paragraph
+            if (explanation.includes('<')) {
+                explanationContent.innerHTML = explanation;
+            } else {
+                explanationContent.innerHTML = `<p>${explanation}</p>`;
+            }
+
+            explanationSection.classList.add('show');
+
+            // Scroll to explanation
+            setTimeout(() => {
+                explanationSection.scrollIntoView({ behavior: 'smooth' });
+            }, 300);
+        }
+
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('statusMessage');
+            statusDiv.textContent = message;
+            statusDiv.className = `status-message show ${type}`;
+
+            // Auto-hide after 5 seconds if success
+            if (type === 'success') {
+                setTimeout(() => {
+                    statusDiv.classList.remove('show');
+                }, 5000);
+            }
+        }
+
+        function formatCurrency(value) {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD',
+                minimumFractionDigits: 2
+            }).format(value);
+        }
+    </script>
+</body>
+</html>
