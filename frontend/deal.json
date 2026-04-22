@@ -10,7 +10,7 @@
       {
         "role": "Primary Buyer",
         "personName": { "givenName": "Jane", "familyName": "Smith" },
-        "contact": { "email": "j.smith@example.com", "phone": "555-0199" }
+        "contact": { "email": "j.smith@example.com", "phone": "555-019-2222" }
       }
     ],
     "vehicle": {

@@ -412,11 +412,10 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0, 0, 0, 0.3);
+            background: transparent;
             display: none;
             z-index: 998;
-            animation: fadeIn 0.3s ease-out;
-            backdrop-filter: blur(2px);
+            pointer-events: none;
         }
 
         @keyframes fadeIn {
@@ -761,7 +760,7 @@
         </div>
 
         <!-- Drawer Overlay -->
-        <div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+        <div class="drawer-overlay" id="drawerOverlay"></div>
 
         <!-- Drawer -->
         <div class="drawer" id="drawer">
@@ -777,7 +776,7 @@
         </div>
 
         <footer>
-            <p>&copy; 2026 Deal Structure Analyzer | Powered by AWS Bedrock</p>
+            <p>&copy; 2026 Deal Analyzer | Powered by AWS Bedrock</p>
         </footer>
     </div>
 
@@ -804,6 +803,25 @@
                 closeDrawer();
             }
         });
+
+        // Helpful function to configure API endpoint in console
+        function configureAPI(apiEndpoint, s3Bucket) {
+            localStorage.setItem('apiEndpoint', apiEndpoint);
+            localStorage.setItem('s3Bucket', s3Bucket);
+            console.log('✅ Configuration saved!');
+            console.log('API Endpoint:', apiEndpoint);
+            console.log('S3 Bucket:', s3Bucket);
+            location.reload();
+        }
+
+        // Log current configuration for debugging
+        console.log('Current Configuration:');
+        console.log('API Endpoint:', config.apiEndpoint);
+        console.log('S3 Bucket:', config.s3Bucket);
+        console.log('Deal JSON Path:', config.dealJsonPath);
+        console.log('');
+        console.log('To configure, run in console:');
+        console.log('configureAPI("https://YOUR-API-ID.execute-api.REGION.amazonaws.com/prod", "your-bucket-name")');
 
         async function loadAndDisplayDeal() {
             try {
@@ -948,20 +966,23 @@
             const spinner = document.getElementById('spinner');
             const btnText = document.getElementById('btnText');
 
-            // Validate configuration
-            if (config.apiEndpoint.includes('YOUR_API_ID')) {
-                showStatus('❌ Please configure your API Endpoint in localStorage or update the config', 'error');
-                return;
-            }
-
             // Disable button and show loading
             btn.disabled = true;
             spinner.style.display = 'inline-block';
             btnText.textContent = 'Analyzing...';
 
-            // Show drawer with loading state
+            // Show drawer with loading state FIRST
             openDrawer();
             showDrawerLoading('Analyzing your deal...');
+
+            // Validate configuration
+            if (config.apiEndpoint.includes('YOUR_API_ID')) {
+                showDrawerError('❌ API Endpoint not configured. Please set your AWS API Gateway endpoint in localStorage.');
+                btn.disabled = false;
+                spinner.style.display = 'none';
+                btnText.textContent = '✨ Explain My Deal';
+                return;
+            }
 
             try {
                 // Load deal data
@@ -1026,7 +1047,6 @@
             drawer.classList.add('show');
             overlay.classList.add('show');
             document.body.classList.add('drawer-open');
-            document.body.style.overflow = 'hidden';
         }
 
         function closeDrawer() {
@@ -1035,7 +1055,6 @@
             drawer.classList.remove('show');
             overlay.classList.remove('show');
             document.body.classList.remove('drawer-open');
-            document.body.style.overflow = 'auto';
         }
 
         function showDrawerLoading(message) {
