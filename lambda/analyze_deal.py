@@ -30,15 +30,19 @@ def lambda_handler(event, context):
         else:
             body = event.get('body', event)
         
-        s3_key = body.get('s3Key')
-        s3_bucket = body.get('s3Bucket')
-        region = body.get('region', BEDROCK_REGION)
+        # Check if deal data is sent directly from frontend
+        deal_structure = body.get('dealData')
         
-        if not s3_key or not s3_bucket:
-            return error_response(400, "Missing s3Key or s3Bucket")
-        
-        # Fetch the deal structure from S3
-        deal_structure = fetch_deal_from_s3(s3_bucket, s3_key)
+        # If no deal data, try to fetch from S3
+        if not deal_structure:
+            s3_key = body.get('s3Key')
+            s3_bucket = body.get('s3Bucket')
+            
+            if not s3_key or not s3_bucket:
+                return error_response(400, "Missing dealData or s3Key/s3Bucket")
+            
+            # Fetch the deal structure from S3
+            deal_structure = fetch_deal_from_s3(s3_bucket, s3_key)
         
         # Analyze with Bedrock
         explanation = analyze_deal_with_bedrock(deal_structure)
@@ -52,7 +56,7 @@ def lambda_handler(event, context):
 
 def fetch_deal_from_s3(bucket, key):
     """
-    Fetch the deal structure JSON from S3
+    Fetch the deal structure JSON from S3 (fallback option)
     """
     try:
         logger.info(f"Fetching {key} from bucket {bucket}")
@@ -146,19 +150,58 @@ Be concise but comprehensive."""
 
 def format_explanation(text):
     """
-    Format the explanation text as HTML for display
+    Convert markdown-style text to HTML for better display
     """
-    # Convert markdown-style headers to HTML
-    html = text.replace('# ', '<h3>')
-    html = html.replace('\n\n', '</h3><p>')
-    html = html.replace('**', '<strong>')
-    html = html.replace('**', '</strong>')
-    html = html.replace('\n', '<br>')
-    html = f"<p>{html}</p>"
+    lines = text.split('\n')
+    html_lines = []
+    in_list = False
     
-    # Clean up extra tags
-    html = html.replace('</h3><p>', '</p><h3>')
+    for line in lines:
+        # Handle headers
+        if line.startswith('### '):
+            if in_list:
+                html_lines.append('</ul>')
+                in_list = False
+            html_lines.append(f'<h3>{line.replace("### ", "")}</h3>')
+        elif line.startswith('## '):
+            if in_list:
+                html_lines.append('</ul>')
+                in_list = False
+            html_lines.append(f'<h2>{line.replace("## ", "")}</h2>')
+        elif line.startswith('# '):
+            if in_list:
+                html_lines.append('</ul>')
+                in_list = False
+            html_lines.append(f'<h1>{line.replace("# ", "")}</h1>')
+        # Handle list items
+        elif line.startswith('- ') or line.startswith('* '):
+            if not in_list:
+                html_lines.append('<ul>')
+                in_list = True
+            item_text = line.replace('- ', '').replace('* ', '')
+            item_text = item_text.replace('**', '<strong>').replace('__', '<strong>')
+            html_lines.append(f'<li>{item_text}</li>')
+        # Handle empty lines (paragraphs)
+        elif line.strip() == '':
+            if in_list:
+                html_lines.append('</ul>')
+                in_list = False
+            html_lines.append('<br>')
+        # Regular text
+        else:
+            if in_list:
+                html_lines.append('</ul>')
+                in_list = False
+            # Replace bold markers
+            line = line.replace('**', '<strong>').replace('__', '</strong>')
+            if line.strip():
+                html_lines.append(f'<p>{line}</p>')
     
+    # Close any open list
+    if in_list:
+        html_lines.append('</ul>')
+    
+    html = '\n'.join(html_lines)
     return html
 
 
