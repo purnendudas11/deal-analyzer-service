@@ -1,0 +1,5 @@
+# Lambda Function Requirements
+# These are included in the setup script, but listed here for reference
+
+boto3>=1.26.0
+botocore>=1.29.0

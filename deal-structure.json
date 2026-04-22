@@ -1,0 +1,41 @@
+{
+  "header": {
+    "documentID": "DEAL-998877",
+    "creationDateTime": "2026-04-21T10:30:00Z",
+    "senderID": "DealerDMS-v4"
+  },
+  "deal": {
+    "dealStatus": "Penciled",
+    "parties": [
+      {
+        "role": "Primary Buyer",
+        "personName": { "givenName": "Jane", "familyName": "Smith" },
+        "contact": { "email": "j.smith@example.com", "phone": "555-0199" }
+      }
+    ],
+    "vehicle": {
+      "vin": "1ABCDE2FG3HIJK456",
+      "modelYear": 2026,
+      "make": "Standard Motors",
+      "model": "Centurion",
+      "stockNumber": "SM-2026-X"
+    },
+    "financeTerms": {
+      "financingType": "Loan",
+      "salePrice": 35000.00,
+      "downPayment": 5000.00,
+      "tradeInAllowance": 2000.00,
+      "netCapitalizedCost": 28000.00,
+      "termMonths": 60,
+      "apr": 4.99,
+      "monthlyPayment": 528.15
+    },
+    "protectionProducts": [
+      {
+        "productName": "Extended Service Contract",
+        "provider": "SafeGuard",
+        "price": 1200.00
+      }
+    ]
+  }
+}

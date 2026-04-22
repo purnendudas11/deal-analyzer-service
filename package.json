@@ -1,0 +1,85 @@
+{
+  "name": "deal-structure-analyzer-poc",
+  "version": "1.0.0",
+  "description": "Gen AI POC for analyzing auto finance deal structures using AWS Bedrock",
+  "main": "frontend/index.html",
+  "scripts": {
+    "serve-frontend": "cd frontend && python -m http.server 8000",
+    "setup": "chmod +x infrastructure/setup.sh && ./infrastructure/setup.sh",
+    "deploy-cf": "aws cloudformation create-stack --stack-name deal-analyzer-poc --template-body file://infrastructure/cloudformation-template.yaml --capabilities CAPABILITY_NAMED_IAM",
+    "list-buckets": "aws s3 ls",
+    "list-lambda": "aws lambda list-functions --query 'Functions[?contains(FunctionName, `deal`)]'",
+    "view-logs-analyze": "aws logs tail /aws/lambda/analyze-deal-with-bedrock --follow",
+    "view-logs-presigned": "aws logs tail /aws/lambda/generate-presigned-url --follow",
+    "test": "echo 'See docs/SETUP_GUIDE.md for testing procedures'"
+  },
+  "keywords": [
+    "AWS",
+    "Bedrock",
+    "Claude",
+    "AI",
+    "Lambda",
+    "S3",
+    "API Gateway",
+    "Serverless",
+    "Finance",
+    "Auto Finance"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "requirements": {
+    "aws-cli": "2.0+",
+    "python": "3.11+",
+    "node": "optional"
+  },
+  "project_structure": {
+    "frontend": {
+      "files": [
+        "index.html - Main UI",
+        "app.js - Frontend logic",
+        "styles.css - Styling"
+      ],
+      "purpose": "Web interface for users"
+    },
+    "lambda": {
+      "files": [
+        "analyze_deal.py - Bedrock integration",
+        "presigned_url.py - S3 URL generation"
+      ],
+      "purpose": "Backend serverless functions"
+    },
+    "infrastructure": {
+      "files": [
+        "setup.sh - Automated deployment",
+        "cloudformation-template.yaml - IaC",
+        "lambda-iam-policy.json - IAM configuration"
+      ],
+      "purpose": "AWS infrastructure setup"
+    },
+    "docs": {
+      "files": [
+        "SETUP_GUIDE.md - Comprehensive guide",
+        "QUICK_START.md - Quick start",
+        "ARCHITECTURE.md - Technical design"
+      ],
+      "purpose": "Documentation"
+    }
+  },
+  "aws_services": {
+    "S3": "Store deal structures",
+    "Lambda": "Serverless compute",
+    "Bedrock": "Claude AI models",
+    "API Gateway": "REST API endpoint",
+    "IAM": "Access control",
+    "CloudWatch": "Logging and monitoring"
+  },
+  "costs_monthly": {
+    "s3": 0.23,
+    "lambda": 0.20,
+    "bedrock": 0.30,
+    "api_gateway": 0.04,
+    "total": 0.77
+  },
+  "deployment_time": "10 minutes",
+  "support": "See docs/SETUP_GUIDE.md for troubleshooting"
+}
