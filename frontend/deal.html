@@ -1017,16 +1017,29 @@
                 const result = await apiResponse.json();
                 console.log('API Response:', result);
 
-                if (result.success && result.explanation) {
+                // Handle API Gateway wrapping - if result has a 'body' field that's a string, parse it
+                let finalResult = result;
+                if (result.body && typeof result.body === 'string') {
+                    try {
+                        finalResult = JSON.parse(result.body);
+                        console.log('Parsed body from API Gateway response:', finalResult);
+                    } catch (e) {
+                        console.log('Body is not valid JSON, using result as-is');
+                        finalResult = result;
+                    }
+                }
+
+                // Now check for success and explanation
+                if (finalResult.success && finalResult.explanation && finalResult.explanation.trim() !== '') {
                     // Display the explanation in drawer
-                    displayExplanationInDrawer(result.explanation);
+                    displayExplanationInDrawer(finalResult.explanation);
                     showStatus('✅ Analysis complete!', 'success');
-                } else if (!result.explanation || result.explanation.trim() === '') {
+                } else if (!finalResult.explanation || finalResult.explanation.trim() === '') {
                     // Show maintenance message if no explanation returned
                     showDrawerError('Unable to generate analysis at this time');
                     showStatus('⚠️ Analysis service temporarily unavailable', 'info');
                 } else {
-                    throw new Error(result.error || 'Empty response from API');
+                    throw new Error(finalResult.error || 'Empty response from API');
                 }
 
             } catch (error) {
@@ -1084,19 +1097,24 @@
         function displayExplanationInDrawer(explanation) {
             const drawerContent = document.getElementById('drawerContent');
             
-            // If explanation is HTML, display as is; otherwise wrap in paragraph tags
-            if (explanation.includes('<') || explanation.includes('###') || explanation.includes('**')) {
-                // Convert markdown-like formatting to HTML if needed
+            // Check if explanation already contains HTML tags (h1, h2, h3, p, ul, li, strong, etc.)
+            const hasHtmlTags = /<(h[1-6]|p|ul|li|strong|em|br|div).*?>/i.test(explanation);
+            
+            if (hasHtmlTags) {
+                // Explanation is already HTML, display as is
+                drawerContent.innerHTML = `<div class="explanation-text">${explanation}</div>`;
+            } else {
+                // Explanation is plain text or markdown, convert markdown to HTML
                 let html = explanation
                     .replace(/###\s+(.+)/g, '<h3>$1</h3>')
+                    .replace(/##\s+(.+)/g, '<h2>$1</h2>')
+                    .replace(/#\s+(.+)/g, '<h1>$1</h1>')
                     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
                     .replace(/\n\n/g, '</p><p>')
-                    .replace(/^\s*[-•]\s+(.+)/gm, '<li>$1</li>')
+                    .replace(/^\s*[-•*]\s+(.+)/gm, '<li>$1</li>')
                     .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>');
                 
                 drawerContent.innerHTML = `<div class="explanation-text">${html}</div>`;
-            } else {
-                drawerContent.innerHTML = `<div class="explanation-text"><p>${explanation}</p></div>`;
             }
         }
 

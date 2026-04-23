@@ -14,7 +14,7 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 # Constants
-MODEL_ID = "anthropic.claude-3-sonnet-20240229-v1:0"  # Using Claude 3 Sonnet for Bedrock
+MODEL_ID = "amazon.nova-pro-v1:0"  # Using Nova Pro for Bedrock
 BEDROCK_REGION = os.environ.get('AWS_REGION', 'us-east-1')
 
 def lambda_handler(event, context):
@@ -76,7 +76,7 @@ def fetch_deal_from_s3(bucket, key):
 
 def analyze_deal_with_bedrock(deal_structure):
     """
-    Send deal structure to Bedrock Claude for analysis
+    Send deal structure to Bedrock Nova for analysis
     """
     try:
         # Create a detailed prompt for Claude
@@ -90,34 +90,82 @@ def analyze_deal_with_bedrock(deal_structure):
             contentType="application/json",
             accept="application/json",
             body=json.dumps({
-                "anthropic_version": "bedrock-2023-06-01",
-                "max_tokens": 2000,
+                # "anthropic_version": "bedrock-2023-06-01",
                 "messages": [
                     {
                         "role": "user",
-                        "content": prompt
+                        "content": [
+                            {
+                                "text": prompt
+                            }
+                        ]
                     }
-                ]
+                ],
+                "inferenceConfig": {
+                    "maxTokens": 1000,
+                    "temperature": 0.3
+                }
             })
         )
         
-        # Parse response
-        response_body = json.loads(response['body'].read())
-        
-        if response_body['content'] and len(response_body['content']) > 0:
-            analysis_text = response_body['content'][0]['text']
+        # Parse response - properly handle StreamingBody
+        try:
+            response_body_bytes = response['body'].read()
+            response_body_str = response_body_bytes.decode('utf-8')
+            response_body = json.loads(response_body_str)
+            
+            logger.info(f"Bedrock response: {response_body_str}")
+            
+            # Try to extract text from nested Bedrock Nova response format
+            analysis_text = None
+            
+            # Format 1: Nested debug_response structure
+            if response_body.get('debug_response'):
+                try:
+                    debug_resp = response_body['debug_response']
+                    content_list = debug_resp['output']['message']['content']
+                    if content_list and len(content_list) > 0:
+                        analysis_text = content_list[0]['text']
+                except (KeyError, IndexError, TypeError):
+                    pass
+            
+            # Format 2: Direct output with message field
+            if not analysis_text and response_body.get('output'):
+                try:
+                    output = response_body['output']
+                    if isinstance(output, dict) and output.get('message'):
+                        content_list = output['message']['content']
+                        if content_list and len(content_list) > 0:
+                            analysis_text = content_list[0]['text']
+                except (KeyError, IndexError, TypeError):
+                    pass
+            
+            # Format 3: Simple content array
+            if not analysis_text and response_body.get('content'):
+                try:
+                    content_list = response_body['content']
+                    if content_list and len(content_list) > 0:
+                        analysis_text = content_list[0]['text']
+                except (KeyError, IndexError, TypeError):
+                    pass
+            
+            if not analysis_text:
+                raise Exception(f"Could not extract text from Bedrock response. Response structure: {json.dumps(response_body, indent=2)}")
             
             # Format the output as HTML
             formatted_output = format_explanation(analysis_text)
             
             logger.info("Successfully analyzed deal with Bedrock")
             return formatted_output
-        else:
-            raise Exception("No content in Bedrock response")
+            
+        except (json.JSONDecodeError, KeyError, TypeError) as e:
+            logger.error(f"Error parsing Bedrock response: {str(e)}", exc_info=True)
+            raise Exception(f"Failed to parse Bedrock response: {str(e)}")
             
     except ClientError as e:
-        logger.error(f"Bedrock error: {str(e)}")
-        raise Exception(f"Failed to analyze with Bedrock: {str(e)}")
+        error_msg = str(e)
+        logger.error(f"Bedrock ClientError: {error_msg}", exc_info=True)
+        raise Exception(f"Failed to analyze with Bedrock: {error_msg}")
 
 
 def create_analysis_prompt(deal_structure):
